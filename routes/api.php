@@ -24,3 +24,6 @@ Route::post('/getInstituitionsByCpf', [CheckCreditOffersController::class, 'getI
 Route::post('/getDetailByOffers', [CheckCreditOffersController::class, 'getDetailByOffers']);
 
 Route::post('/getBestCreditOffersByCpf', [CheckCreditOffersController::class, 'getBestCreditOffersByCpf']);
+
+Route::post('/calculateCreditConditions', [CheckCreditOffersController::class, 'calculateCreditConditions']);
+

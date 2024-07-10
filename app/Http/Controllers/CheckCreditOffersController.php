@@ -7,11 +7,6 @@ use Illuminate\Http\Request;
 
 class CheckCreditOffersController extends Controller
 {
-    private $creditOffers;
-
-    public function __construct() {
-        $this->creditOffers = [];
-    }
 
     /**
      * função responsavel por buscar intituições de credito disponiveis para o cpf
@@ -23,7 +18,7 @@ class CheckCreditOffersController extends Controller
 
         $creditoffersAvaliable = $this->getCreditOffersByCpf($cpf);
       
-        return json_encode(['status'=>200, 'record'=>$creditoffersAvaliable->instituicoes]);
+        return json_encode(['status'=>200, 'record'=>$creditoffersAvaliable]);
     }
 
 
@@ -33,12 +28,6 @@ class CheckCreditOffersController extends Controller
         $data = ['cpf'=>$cpf];
         //busca ofertas de crédito
         $offers = $this->getExternalData($data, 'https://dev.gosat.org/api/v1/simulacao/credito');
-
-        $creditOffers = [];
-        foreach ($offers->instituicoes as $offerData) {
-            $creditOffers[$offerData->id] = $offerData;
-        }
-        $this->creditOffers = $creditOffers;
 
         return $offers->instituicoes;
     }
@@ -57,12 +46,8 @@ class CheckCreditOffersController extends Controller
         ]);*/
 
         $cpf = $request->input('cpf');
-        $value = $request->input('valor');
-
         $creditoffersAvaliable = $this->getCreditOffersByCpf($cpf);        
         $creditoffersDetailed = $this->getCreditDetailedDataByOffer($creditoffersAvaliable, $cpf);
-        $creditoffersDetailed = $this->calcBestsOffersByConditions($creditoffersDetailed, $value);
-
         $return = $creditoffersDetailed;
       
         return json_encode(['status'=>200, 'record'=>$return]);
@@ -94,11 +79,47 @@ class CheckCreditOffersController extends Controller
     }
     
 
+    public function calculateCreditConditions(Request $request)
+    {
+    
+        /*
+        o instituicaoFinanceira
+        o modalidadeCredito
+        o valorAPagar
+        o valorSolicitado
+        o taxaJuros
+        o qntParcelas*/
+
+        $totalsCalculateds = $this->calculInterestRate($request->input('value'), $request->input('installments'), $request->input('jurosMes'));
+
+        $calcReturn = [
+            'instituicaoFinanceira'=>$request->input('instituicaoFinanceira'),
+            'modalidadeCredito'=>$request->input('modalidadeCredito'),
+            'valorAPagar'=>$totalsCalculateds['totalPagar'],
+            'taxaJuros'=>$totalsCalculateds['totalJuros'],
+            'modalidadeCredito'=>$request->input('value'),
+            'qntParcelas'=>$request->input('installments'),
+        ];
+        return json_encode(['status'=>200, 'record'=>$calcReturn]);
+
+    }
+    
+    private function calculInterestRate($value, $installments, $interetRate) {
+        $totalValue = $value + ($value * $installments * $interetRate);
+        $totalInteretRate = $totalValue - $value;
+        
+        return [
+            'totalPagar' => $totalValue,
+            'totalJuros' => $totalInteretRate
+        ];
+    }
     
 
     private function getCreditDetailedDataByOffer($creditOffers, $cpf)
     {
         $creditOffersDetailed = [];
+
+        $modalities = [];
 
         foreach ($creditOffers as $offerData) {
             foreach ($offerData->modalidades as $modality) {
@@ -119,46 +140,11 @@ class CheckCreditOffersController extends Controller
             }
             return $a->jurosMes <=> $b->jurosMes;
         });
-        
-        /*$creditOffersDetailed = collect($creditOffersDetailed);
-        
-        $creditOffersDetailed = $creditOffersDetailed->sort(function($a, $b) {
-            if ($a->jurosMes == $b->jurosMes) {
-                return $b->valorMax <=> $a->valorMax;
-            }
-            return $a->jurosMes <=> $b->jurosMes;
-        });*/
-
-
-        print_r($creditOffersDetailed);die;
 
         return $creditOffersDetailed;
        
-    }
+    }  
 
-    private function calcBestsOffersByConditions($creditOffers, $value)
-    {
-
-        $offerOptions = [];
-
-        foreach ($creditOffers as $key => $offerData) {
-
-            //caso o valor solicitado esteja fora dos parametros da oferta remove a opão 
-            /*if ($value < $offerData->valorMin || $value > $offerData->valorMax) {
-                unset($creditOffers[$key]);
-                continue;
-            }*/
-
-            $offerData->valorSolicitado = $value;
-            $offerData->installmentValue = $this->calcInterestRate((float)$offerData->valorMin, (int)$offerData->QntParcelaMin, (float)$offerData->jurosMes);
-            $offerData->total = $offerData->installmentValue * $offerData->QntParcelaMin;
-
-            print_r($offerData);die;
-        }
-    }
-
-
-    
 
 
     private function calcInterestRate($value, $installments, $interestRate)
