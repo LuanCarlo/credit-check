@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\CreditHistory;
+use App\Models\Instituitions;
+use App\Models\Modality;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -96,19 +98,18 @@ class CheckCreditOffersController extends Controller
         $calcReturn = (object) [
             'instituicaoFinanceira'=>$request->input('instituicaoFinanceira'),
             'modalidadeCredito'=>$request->input('modalidadeCredito'),
+            'valorSolicitado'=>$request->input('value'),
             'valorAPagar'=>$totalsCalculateds['totalPagar'],
             'taxaJuros'=>$totalsCalculateds['totalJuros'],
-            'modalidadeCredito'=>$request->input('value'),
             'qntParcelas'=>$request->input('installments'),
         ];
 
-        $return = $this->saveUserHistory($request->input('cpf'),
+        $return = $this->saveUserHistory(
+            $request->input('cpf'),
             $request->input('instituicaoFinanceiraId'), 
             $request->input('modalidadeCreditoCod'), 
             $calcReturn
         );
-
-        print_r($return);
 
         return json_encode(['status'=>200, 'record'=>$calcReturn]);
 
@@ -117,21 +118,65 @@ class CheckCreditOffersController extends Controller
     /**
      * função responsável por salvar o historico de simulações
      */
-    public function saveUserHistory($cpf, $data)
+    public function saveUserHistory($cpf, $instituicaoFinanceiraId, $modalidadeCreditoCod, $calcData)
     {
         try {
 
-
-            print_r($data->instituicaoFinanceira);die;
-
             $creditHistory = CreditHistory::create([
                 'user_cpf' => $cpf,
-                'instituition_id' => $data->instituicaoFinanceira,
-                'modality' => $data->modalidadeCredito,
-                'value_requested' => $data->qntParcelas,
+                'instituition_id' => $instituicaoFinanceiraId,
+                'modality' => $modalidadeCreditoCod,
+                'value_requested' => $calcData->valorSolicitado,
+                'installments' => $calcData->qntParcelas,
             ]);
 
             $response = $creditHistory;
+
+        } catch(Exception $error) {
+
+            $response = $error->getMessage();
+        }
+
+       return $response;
+    }
+
+    public function saveInstituitions($id, $instituition)
+    {
+        try {
+
+            $response = null;
+            $existingRecord = Instituitions::find($id);
+
+            if (!$existingRecord) {
+                $instituition = Instituitions::create([
+                    'id' => $id,
+                    'nome' => $instituition,
+                ]);
+                $response = $instituition;
+            }
+
+        } catch(Exception $error) {
+
+            $response = $error->getMessage();
+        }
+
+       return $response;
+    }
+
+    public function saveModality($id, $instituition)
+    {
+        try {
+
+            $response = null;
+            $existingRecord = Modality::find($id);
+
+            if (!$existingRecord) {
+                $instituition = Modality::create([
+                    'id' => $id,
+                    'nome' => $instituition,
+                ]);
+                $response = $instituition;
+            }
 
         } catch(Exception $error) {
 
@@ -167,7 +212,10 @@ class CheckCreditOffersController extends Controller
                 $detailedOffer->modalidadeCredito = $modality->nome;
                 $detailedOffer->modalidadeCreditoCod = $modality->cod;
                 $creditOffersDetailed[] = $detailedOffer;
+
+                $this->saveModality($modality->cod, $modality->nome);
             }
+            $this->saveInstituitions($offerData->id, $offerData->nome);
         }
 
         usort($creditOffersDetailed, function($a, $b) {

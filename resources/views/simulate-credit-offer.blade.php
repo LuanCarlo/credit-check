@@ -39,14 +39,13 @@
 
     <div class="form-group hide">
         <label for="valor">Valor</label>
-        <input type="text" class="form-control" id="value" placeholder="Digite seu o valor">
+        <input type="text" class="form-control" id="value" placeholder="Digite o valor desejado">
         <label for="valor">Parcelas</label>
-        <input type="text" class="form-control" id="installments" placeholder="Digite seu o valor">
-
+        <input type="text" class="form-control" id="installments" placeholder="Digite o número de parcelas">
         <button id="getCalc" class="btn btn-primary">Calcular</button>
-
     </div>
 
+    <div id="responseCalc-container" class="mt-3 divBordered"></div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
@@ -65,6 +64,7 @@
             let cpf = null;
             let intituitions = [];
             let optionSelected = {};
+            let conditionsCalculateds = {};
             $('#cpf').mask('000.000.000-00');
 
             $('#getInstituitions').click(function() {
@@ -137,15 +137,13 @@
                         }
                     },
                     error: function(xhr) {
-                        $('#response').html('<div class="alert alert-danger">Erro na requisição AJAX</div>');
+                        $('#institutions-container').html('<div class="alert alert-danger">Erro ao tentar buscar dados</div>');
                     }
                 });
             });
 
             function selectCreditOptionsDetailed(cpf,instituition) {
-
-                optionSelected = instituition;
-                
+                optionSelected = instituition; 
             }
 
             $('#getCalc').click(function() {
@@ -156,11 +154,9 @@
                 optionSelected.cpf = cpf;
                 optionSelected.value = value;
                 optionSelected.installments = installments;
-
-                console.log('no calculo', JSON.stringify(optionSelected));return;
                 
                 $.ajax({
-                    url: 'http://127.0.0.1:8000/api/getBestCreditOffersByCpf',
+                    url: 'http://127.0.0.1:8000/api/calculateCreditConditions',
                     method: 'POST',
                     data: optionSelected,
                     success: function(response) {
@@ -168,11 +164,29 @@
                         if (response) {
 
                             const jsonObject = JSON.parse(response);
-                            intituitions = jsonObject.record;
+                            conditionsCalculateds = jsonObject.record;
+
+                            renderRetunCalc(conditionsCalculateds);
                         }
                     }
                 });
             });
+
+            function renderRetunCalc(conditionsCalculateds) {
+                
+                console.log('conditionsCalculateds', conditionsCalculateds);
+
+                const responseCalcContainer = $('#responseCalc-container');
+                responseCalcContainer.empty();
+
+                var responseCalcDiv = $('#responseCalc-container');
+                responseCalcDiv.append('<p>Instituição Financeira: ' + conditionsCalculateds.instituicaoFinanceira + '</p>');
+                responseCalcDiv.append('<p>Modalidade de Crédito: ' + conditionsCalculateds.modalidadeCredito + '</p>');
+                responseCalcDiv.append('<p>Valor Solicitado: ' + conditionsCalculateds.valorSolicitado + '</p>');
+                responseCalcDiv.append('<p>Valor a pagar: ' + conditionsCalculateds.valorAPagar + '</p>');
+                responseCalcDiv.append('<p>Taxa Juros: ' + conditionsCalculateds.taxaJuros + '</p>');
+                responseCalcDiv.append('<p>Qnt Parcelas: ' + conditionsCalculateds.qntParcelas + '</p>');
+            }
         });
     </script>
 
