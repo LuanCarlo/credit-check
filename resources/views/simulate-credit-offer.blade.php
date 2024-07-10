@@ -150,8 +150,10 @@
 
             $('#getCalc').click(function() {
 
+                const cpf = $('#cpf').val();
                 const value = $('#value').val();
                 const installments = $('#installments').val();
+                optionSelected.cpf = cpf;
                 optionSelected.value = value;
                 optionSelected.installments = installments;
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CreditHistory;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -92,7 +93,7 @@ class CheckCreditOffersController extends Controller
 
         $totalsCalculateds = $this->calculInterestRate($request->input('value'), $request->input('installments'), $request->input('jurosMes'));
 
-        $calcReturn = [
+        $calcReturn = (object) [
             'instituicaoFinanceira'=>$request->input('instituicaoFinanceira'),
             'modalidadeCredito'=>$request->input('modalidadeCredito'),
             'valorAPagar'=>$totalsCalculateds['totalPagar'],
@@ -100,9 +101,46 @@ class CheckCreditOffersController extends Controller
             'modalidadeCredito'=>$request->input('value'),
             'qntParcelas'=>$request->input('installments'),
         ];
+
+        $return = $this->saveUserHistory($request->input('cpf'),
+            $request->input('instituicaoFinanceiraId'), 
+            $request->input('modalidadeCreditoCod'), 
+            $calcReturn
+        );
+
+        print_r($return);
+
         return json_encode(['status'=>200, 'record'=>$calcReturn]);
 
     }
+
+    /**
+     * função responsável por salvar o historico de simulações
+     */
+    public function saveUserHistory($cpf, $data)
+    {
+        try {
+
+
+            print_r($data->instituicaoFinanceira);die;
+
+            $creditHistory = CreditHistory::create([
+                'user_cpf' => $cpf,
+                'instituition_id' => $data->instituicaoFinanceira,
+                'modality' => $data->modalidadeCredito,
+                'value_requested' => $data->qntParcelas,
+            ]);
+
+            $response = $creditHistory;
+
+        } catch(Exception $error) {
+
+            $response = $error->getMessage();
+        }
+
+       return $response;
+    }
+
     
     private function calculInterestRate($value, $installments, $interetRate) {
         $totalValue = $value + ($value * $installments * $interetRate);
@@ -118,8 +156,6 @@ class CheckCreditOffersController extends Controller
     private function getCreditDetailedDataByOffer($creditOffers, $cpf)
     {
         $creditOffersDetailed = [];
-
-        $modalities = [];
 
         foreach ($creditOffers as $offerData) {
             foreach ($offerData->modalidades as $modality) {
@@ -144,14 +180,6 @@ class CheckCreditOffersController extends Controller
         return $creditOffersDetailed;
        
     }  
-
-
-
-    private function calcInterestRate($value, $installments, $interestRate)
-    {
-        $installments = ($value * $interestRate) / (1 - pow((1 + $interestRate), - $installments));
-        return $installments;
-    }
 
 
     private function getExternalData($fields, $url)
