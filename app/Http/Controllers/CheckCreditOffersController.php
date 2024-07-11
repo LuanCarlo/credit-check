@@ -83,6 +83,10 @@ class CheckCreditOffersController extends Controller
     public function getInstituitionsByCpf(Request $request)
     {
 
+        $request->validate([
+            'cpf' => 'required',
+        ]);
+
         $cpf = $request->input('cpf');
 
         $creditoffersAvaliable = $this->getCreditOffersByCpf($cpf);
@@ -132,10 +136,25 @@ class CheckCreditOffersController extends Controller
 
     public function getCalcByOffer(Request $request)
     {
+        $request->validate([
+            'cpf' => 'required',
+            'instituicao_id' => 'required',
+            'codModalidade' => 'required',
+        ]);
+
         //busca dados detalhados da oferta
         $detailedOffer = $this->getDetailedOffer($request->input('cpf'), $request->input('instituicao_id'), $request->input('codModalidade'));
-        $totalsCalculateds = (object) $this->calculInterestRate($request->input('value'), $request->input('installments'), $detailedOffer->jurosMes);
 
+        if (($request->input('value') < $detailedOffer->valorMin) || ($request->input('value') > $detailedOffer->valorMax)) {
+            return json_encode(['status'=>422, 'record'=>['errors'=>1, 'message'=>'Valor fora do limite da opção']]);
+        }
+
+        if (($request->input('installments') < $detailedOffer->valorMin) || ($request->input('installments') > $detailedOffer->valorMax)) {
+            return json_encode(['status'=>422, 'record'=>['errors'=>1, 'message'=>'Parcela fora do limite da opção']]);
+        }
+        
+
+        $totalsCalculateds = (object) $this->calculInterestRate($request->input('value'), $request->input('installments'), $detailedOffer->jurosMes);
         $intituition = Instituitions::find($request->input('instituicao_id'));
         $modality = Modality::find($request->input('codModalidade'));
 

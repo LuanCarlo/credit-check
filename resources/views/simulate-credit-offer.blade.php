@@ -163,6 +163,30 @@
                 });
             });
 
+            $('#value').on('blur', function() {
+                var min = parseFloat($(this).attr('min'));
+                var max = parseFloat($(this).attr('max'));
+                var value = parseFloat($(this).val());
+
+                if (value < min) {
+                    $(this).val(min);
+                } else if (value > max) {
+                    $(this).val(max);
+                }
+            });
+
+            $('#installments').on('blur', function() {
+                var min = parseFloat($(this).attr('min'));
+                var max = parseFloat($(this).attr('max'));
+                var value = parseFloat($(this).val());
+
+                if (value < min) {
+                    $(this).val(min);
+                } else if (value > max) {
+                    $(this).val(max);
+                }
+            });
+
             function selectCreditOptionsDetailed(cpf,instituition) {
                 optionSelected = instituition; 
             }
