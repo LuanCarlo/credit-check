@@ -57,10 +57,14 @@
                     <label for="valor">Parcelas</label>
                     <input type="text" class="form-control" id="installments" placeholder="Digite o número de parcelas">
                 </div>
+
+                <div id="validation-container"></div>
+
                 <div class="col-sm-6 mb-3">
                     <button id="getCalc" class="btn btn-primary">Calcular</button>
                 </div>
             </div>
+
 
             <div class="card mt-6">
                 <div id="responseCalc-container" class="card-body hide"></div>
@@ -213,6 +217,17 @@
 
                             renderRetunCalc(conditionsCalculateds);
                         }
+                    },
+                    error: function(xhr) {
+
+                        console.log(xhr);
+
+                        let msg = 'Erro ao tentar buscar dados';
+                        if(xhr.responseJSON?.message) {
+                            msg = xhr.responseJSON.message;
+                        }
+
+                        $('#validation-container').html('<div class="alert alert-danger">'+msg+'</div>');
                     }
                 });
             });
@@ -220,6 +235,9 @@
             function renderRetunCalc(conditionsCalculateds) {
                 
                 console.log('conditionsCalculateds', conditionsCalculateds);
+
+                const validationContainer = $('#validation-container');
+                validationContainer.empty();
 
                 const responseCalcContainer = $('#responseCalc-container');
                 responseCalcContainer.empty();

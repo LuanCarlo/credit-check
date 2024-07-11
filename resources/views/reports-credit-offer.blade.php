@@ -73,7 +73,7 @@
 
                         var options2 = {
                             title: 'Valor por modalidade',
-                            hAxis: {title: 'Mês',  titleTextStyle: {color: '#333'}},
+                            hAxis: {title: 'Modalidade',  titleTextStyle: {color: '#333'}},
                             vAxis: {minValue: 0}
                         };
 
@@ -82,19 +82,58 @@
                     }
                 }
             });
+
+            $.ajax({
+                url: 'http://127.0.0.1:8000/api/creditSimulationsByInstituition',
+                method: 'GET',
+                data: { },
+                success: function(response) {
+                    
+                    if (response) {
+
+                        const jsonObject = JSON.parse(response);
+                        intituitions = jsonObject.record;
+
+                        var chartData = [['Instituição', 'Qtd']];
+
+                        intituitions.forEach(function(item) {
+                            chartData.push([item.instituition, parseFloat(item.total_simulations)]);
+                        });
+            
+                        var data = google.visualization.arrayToDataTable(chartData);
+
+                        var options3 = {
+                            title: 'Quantidade por Instituição',
+                            hAxis: {title: 'Instituição',  titleTextStyle: {color: '#333'}},
+                            vAxis: {minValue: 0}
+                        };
+
+                        var qtdByInstituicao = new google.visualization.PieChart(document.getElementById('qtd_by_instituicao'));
+                        qtdByInstituicao.draw(data, options3);
+                    }
+                }
+            });
         }
     </script>
     
 </head>
 <body>
-    
-<div class="container">
+
+
+<div class="container justify-content-center align-items-center full-height">
 
     <h1>Relatórios Graficos</h1>
 
-    <div id="value_by_month" style="width: 900px; height: 500px"></div>
+    <div class="container-fluid d-flex justify-content-center align-items-center full-height">
 
-    <div id="value_by_modality" style="width: 900px; height: 500px"></div>
+
+        <div id="value_by_month" style="width: 900px; height: 500px"></div>
+
+        <div id="value_by_modality" style="width: 900px; height: 500px"></div>
+    </div>
+    <div class="">
+        <div id="qtd_by_instituicao" style="width: 900px; height: 500px"></div>
+    <div>
 </div>
     
 </body>

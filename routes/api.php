@@ -33,5 +33,7 @@ Route::get('/getCreditValuesByMonth', [CheckCreditOffersController::class, 'getC
 
 Route::get('/creditValuesByModality', [CheckCreditOffersController::class, 'creditValuesByModality']);
 
+Route::get('/creditSimulationsByInstituition', [CheckCreditOffersController::class, 'creditSimulationsByInstituition']);
+
 
 

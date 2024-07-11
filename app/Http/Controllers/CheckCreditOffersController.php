@@ -77,6 +77,27 @@ class CheckCreditOffersController extends Controller
         return json_encode(['status'=>200, 'record'=>$formattedValues]);
     }
 
+
+    public function creditSimulationsByInstituition()
+    {
+     
+        $creditValues = DB::table('credit_history')
+            ->select('instituitions.nome as instituition', DB::raw('count(credit_history.id) as total_simulations'))
+            ->join('instituitions', 'credit_history.instituition_id', '=', 'instituitions.id')
+            ->groupBy('instituitions.nome')
+            ->get();
+
+
+        foreach ($creditValues as $value) {
+            $formattedValues[] = [
+                'instituition' => $value->instituition, 
+                'total_simulations' =>(float) $value->total_simulations
+            ];
+        }
+    
+        return json_encode(['status'=>200, 'record'=>$formattedValues]);
+    }
+
     /**
      * função responsavel por buscar intituições de credito disponiveis para o cpf
     */
@@ -208,6 +229,11 @@ class CheckCreditOffersController extends Controller
         o valorSolicitado
         o taxaJuros
         o qntParcelas*/
+
+        $request->validate([
+            'value' => 'required',
+            'installments' => 'required',
+        ]);
 
         $totalsCalculateds = $this->calculInterestRate($request->input('value'), $request->input('installments'), $request->input('jurosMes'));
 
