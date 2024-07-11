@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('user_cpf', 14)->notNullable();
             $table->integer('instituition_id')->nullable();
-            $table->string('modality')->nullable();
+            $table->string('modality', 50)->nullable();
             $table->decimal('value_requested', 10, 2)->nullable();
             $table->integer('installments')->nullable();
             $table->timestamps();

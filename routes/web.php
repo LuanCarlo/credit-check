@@ -17,5 +17,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/simulate-credit-offer', [App\Http\Controllers\SimulateCreditOffersController::class, 'simulateCreditOfferPage']);
+Route::get('/simulate-credit-offer', [App\Http\Controllers\CheckCreditOffersController::class, 'simulateCreditOfferPage']);
+Route::get('/reports-credit-offer', [App\Http\Controllers\CheckCreditOffersController::class, 'reportCreditOfferPage']);
+
 

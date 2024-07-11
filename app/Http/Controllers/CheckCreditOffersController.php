@@ -8,8 +8,74 @@ use App\Models\Modality;
 use Exception;
 use Illuminate\Http\Request;
 
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
 class CheckCreditOffersController extends Controller
 {
+    public function simulateCreditOfferPage()
+    {
+        return view('simulate-credit-offer');
+    }
+
+    public function reportCreditOfferPage()
+    {
+        return view('reports-credit-offer');
+    }
+
+    public function getCreditValuesByMonth()
+    {
+
+        $startDate = now()->startOfYear();
+        $endDate = now();
+    
+        $months = [];
+        while ($startDate <= $endDate) {
+            $months[] = $startDate->format('Y-m');
+            $startDate->addMonth();
+        }
+    
+        $creditValues = DB::table('credit_history')
+            ->select(
+                DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
+                DB::raw('SUM(value_requested) as total_value')
+            )
+            ->whereBetween('created_at', [$months[0], now()])
+            ->groupBy('month')
+            ->get();
+    
+        $formattedValues = [];
+        foreach ($months as $month) {
+            $totalValue = $creditValues->firstWhere('month', $month);
+            $formattedValues[] = [
+                'month' => Carbon::createFromFormat('Y-m', $month)->format('F'),
+                'total_value' => $totalValue ? $totalValue->total_value : 0
+            ];
+        }
+
+
+        return json_encode(['status'=>200, 'record'=>$formattedValues]);
+    }
+
+    public function creditValuesByModality()
+    {
+     
+        $creditValues = DB::table('credit_history')
+            ->select('modality.nome as modalidade', DB::raw('SUM(credit_history.value_requested) as total_value'))
+            ->join('modality', 'credit_history.modality', '=', 'modality.id')
+            ->groupBy('modality.nome')
+            ->get();
+
+
+        foreach ($creditValues as $value) {
+            $formattedValues[] = [
+                'modality' => $value->modalidade, 
+                'total_value' =>(float) $value->total_value
+            ];
+        }
+    
+        return json_encode(['status'=>200, 'record'=>$formattedValues]);
+    }
 
     /**
      * função responsavel por buscar intituições de credito disponiveis para o cpf

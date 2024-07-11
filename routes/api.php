@@ -27,3 +27,9 @@ Route::post('/getBestCreditOffersByCpf', [CheckCreditOffersController::class, 'g
 
 Route::post('/calculateCreditConditions', [CheckCreditOffersController::class, 'calculateCreditConditions']);
 
+Route::get('/getCreditValuesByMonth', [CheckCreditOffersController::class, 'getCreditValuesByMonth']);
+
+Route::get('/creditValuesByModality', [CheckCreditOffersController::class, 'creditValuesByModality']);
+
+
+
