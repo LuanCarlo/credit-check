@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [App\Http\Controllers\CheckCreditOffersController::class, 'simulateCreditOfferPage']);
 
 Route::get('/simulate-credit-offer', [App\Http\Controllers\CheckCreditOffersController::class, 'simulateCreditOfferPage']);
 Route::get('/reports-credit-offer', [App\Http\Controllers\CheckCreditOffersController::class, 'reportCreditOfferPage']);
