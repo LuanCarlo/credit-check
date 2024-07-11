@@ -110,9 +110,9 @@ class CheckCreditOffersController extends Controller
     public function getBestCreditOffersByCpf(Request $request)
     {
         //
-        /*$validation = Validator::make($request->all(), [
-            'usuario_id' => 'integer'
-        ]);*/
+        $request->validate([
+            'cpf' => 'required',
+        ]);
 
         $cpf = $request->input('cpf');
         $creditoffersAvaliable = $this->getCreditOffersByCpf($cpf);        
@@ -129,6 +129,37 @@ class CheckCreditOffersController extends Controller
 
         return json_encode(['status'=>200, 'record'=>$detailedOffer]);
     }
+
+    public function getCalcByOffer(Request $request)
+    {
+        //busca dados detalhados da oferta
+        $detailedOffer = $this->getDetailedOffer($request->input('cpf'), $request->input('instituicao_id'), $request->input('codModalidade'));
+        $totalsCalculateds = (object) $this->calculInterestRate($request->input('value'), $request->input('installments'), $detailedOffer->jurosMes);
+
+        $intituition = Instituitions::find($request->input('instituicao_id'));
+        $modality = Modality::find($request->input('codModalidade'));
+
+        $intituitionLabel = $request->input('instituicao_id');
+        $modalityLabel = $request->input('instituicao_id');
+        if ($intituition) {
+            $intituitionLabel = $intituition->nome;
+        }
+        if ($modality) {
+            $modalityLabel = $modality->nome;
+        }
+
+        $calcReturn = (object) [
+            'instituicaoFinanceira'=>$intituitionLabel,
+            'modalidadeCredito'=>$modalityLabel,
+            'valorSolicitado'=>$request->input('value'),
+            'valorAPagar'=>$totalsCalculateds->totalPagar,
+            'taxaJuros'=>$totalsCalculateds->totalJuros,
+            'qntParcelas'=>$request->input('installments'),
+        ];
+
+        return json_encode(['status'=>200, 'record'=>$calcReturn]);
+    }
+
 
     /**
      * Função responsável por buscar detalhes da oferta

@@ -8,6 +8,8 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
@@ -86,11 +88,14 @@
 </head>
 <body>
     
-<div id="value_by_month" style="width: 900px; height: 500px"></div>
+<div class="container">
 
-<div id="value_by_modality" style="width: 900px; height: 500px"></div>
+    <h1>Relatórios Graficos</h1>
 
+    <div id="value_by_month" style="width: 900px; height: 500px"></div>
 
+    <div id="value_by_modality" style="width: 900px; height: 500px"></div>
+</div>
     
 </body>
 </html>
